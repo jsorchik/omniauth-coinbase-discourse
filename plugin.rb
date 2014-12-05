@@ -9,7 +9,9 @@ gem 'httparty', '0.8.3'
 gem 'coinbase', '2.1.1'
 gem 'omniauth-coinbase', '1.0.2'
 
-class CoinbaseAuthenticator < ::Auth::Authenticator
+require 'auth/oauth2_authenticator'
+
+class CoinbaseAuthenticator < ::Auth::OAuth2Authenticator
 
   CLIENT_ID = ENV['CB_CLIENT_ID']
   CLIENT_SECRET = ENV['CB_CLIENT_SECRET']
@@ -26,6 +28,7 @@ class CoinbaseAuthenticator < ::Auth::Authenticator
     raw_info = auth_token["extra"]["raw_info"]
     name = data["name"]
     cb_uid = auth_token["uid"]
+    email = data["email"]
 
     # plugin specific data storage
     current_info = ::PluginStore.get("cb", "cb_uid_#{cb_uid}")
@@ -37,6 +40,7 @@ class CoinbaseAuthenticator < ::Auth::Authenticator
 
     result.name = name
     result.extra_data = { cb_uid: cb_uid }
+    result.email = email
 
     result
   end
@@ -59,7 +63,7 @@ auth_provider :title => 'with Coinbase',
     :message => 'Log in via Coinbase (Make sure pop up blockers are not enabled).',
     :frame_width => 920,
     :frame_height => 800,
-    :authenticator => CoinbaseAuthenticator.new
+    :authenticator => CoinbaseAuthenticator.new('coinbase', trusted: true)
 
 
 register_css <<CSS
